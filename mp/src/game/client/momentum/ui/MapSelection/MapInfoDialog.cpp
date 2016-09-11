@@ -287,60 +287,27 @@ void CDialogMapInfo::GetMapInfoCallback(HTTPRequestCompleted_t *pCallback, bool 
         {
             KeyValues *pResponse = CJsonToKeyValues::ConvertJsonToKeyValues(val.toNode());
             KeyValues::AutoDelete ad(pResponse);
-
-            //Difficulty
-            char buffer[32];
-            Q_snprintf(buffer, sizeof(buffer), "Tier %g", pResponse->GetFloat("difficulty"));
-            SetControlString("DifficultyText", buffer);
-
-            V_memset(buffer, 0, sizeof(buffer));
-
-            //Layout
-            bool linear = pResponse->GetBool("linear");
-            
-            if (linear)
+            if (pResponse)
             {
-                LOCALIZE_TOKEN(linear, "MOM_Linear", buffer);
+                KeyValues *pMapInfo = pResponse->FindKey("mapinfo");
+                if (pMapInfo)
+                {
+                    SetControlString("AuthorText", pMapInfo->GetString("mapper_nick", "Unknown"));
+                    SetControlString("DifficultyText", pMapInfo->GetString("difficulty", "-1"));
+                    //const int bonus = pMapInfo->GetInt("bonus", -1);
+                    SetControlString("GamemodeText", pMapInfo->GetString("game_mode", "Unknown"));
+                    char layout[BUFSIZELOCL];
+                    if (pMapInfo->GetBool("linear", false))
+                    {
+                        LOCALIZE_TOKEN(linear, "MOM_Linear", layout);
+                    }
+                    else
+                    {
+                        Q_snprintf(layout, BUFSIZELOCL, "%i STAGES", pMapInfo->GetInt("zones", -1));
+                    }
+                    SetControlString("LayoutText", layout);
+                }
             }
-            else
-            {
-                LOCALIZE_TOKEN(staged, "MOM_MapSelector_InfoDialog_Staged", buffer);
-            }
-            SetControlString("LayoutText", buffer);
-
-            V_memset(buffer, 0, sizeof(buffer));
-
-            //Zones
-            int zones = static_cast<int>(pResponse->GetFloat("zones"));
-
-            char locl[BUFSIZELOCL];
-            LOCALIZE_TOKEN(staged, "MOM_AmountZones", locl);
-            Q_snprintf(buffer, sizeof(buffer), locl, zones);
-
-            SetControlString("NumZones", buffer);
-
-            //Author
-
-            SetControlString("AuthorText", pResponse->GetString("submitter"));
-
-
-            //Game mode
-            //MOM_TODO: Potentially have this part of the site?
-            int gameMode = static_cast<int>(pResponse->GetFloat("gamemode"));
-            const char *gameType;
-            switch (gameMode)
-            {
-            case MOMGM_SURF:
-                gameType = "Surf";
-                break;
-            case MOMGM_BHOP:
-                gameType = "Bunnyhop";
-                break;
-            default:
-                gameType = "Unknown";
-                break;
-            }
-            SetControlString("GamemodeText", gameType);
         }
     }
     else
@@ -358,7 +325,7 @@ void CDialogMapInfo::Get10MapTimes(const char* mapname)
     if (steamapicontext && steamapicontext->SteamHTTP())
     {
         char szURL[BUFSIZ];
-        Q_snprintf(szURL, BUFSIZ, "%s/getscores/1/%s/10", MOM_APIDOMAIN, mapname);
+        Q_snprintf(szURL, BUFSIZ, "%s/getscores/1/%s/10/0/0", MOM_APIDOMAIN, mapname);
         HTTPRequestHandle handle = steamapicontext->SteamHTTP()->CreateHTTPRequest(k_EHTTPMethodGET, szURL);
         SteamAPICall_t apiHandle;
         if (steamapicontext->SteamHTTP()->SendHTTPRequest(handle, &apiHandle))

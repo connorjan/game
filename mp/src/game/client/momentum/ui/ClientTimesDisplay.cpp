@@ -766,13 +766,10 @@ void CClientTimesDisplay::LoadOnlineTimes()
         char requrl[BUFSIZ], format[BUFSIZ];
         // Mapname, tickrate, rank, radius
 
-        Q_strcpy(format, "%s/getscores/%i/%s/10/%d");
-
-        if (!m_bGetTop10Scores)
-            Q_strcat(format, "/%llu", sizeof("/%llu"));
+        Q_strcpy(format, "%s/getscores/%i/%s/10/%llu/%d");
 
         Q_snprintf(requrl, BUFSIZ, format, MOM_APIDOMAIN, m_bGetTop10Scores ? 1 : 2, g_pGameRules->MapName(),
-                   flaggedRuns, GetSteamIDForPlayerIndex(GetLocalPlayerIndex()).ConvertToUint64());
+            GetSteamIDForPlayerIndex(GetLocalPlayerIndex()).ConvertToUint64(), flaggedRuns);
 
         // This url is not real, just for testing purposes. It returns a json list with the serialization of the scores
         CreateAndSendHTTPReq(requrl, &cbGetOnlineTimesCallback, &CClientTimesDisplay::GetOnlineTimesCallback);
@@ -1165,21 +1162,22 @@ void CClientTimesDisplay::GetMapInfoCallback(HTTPRequestCompleted_t *pCallback, 
             KeyValues::AutoDelete ad(pResponse);
             if (pResponse)
             {
-                const char *author = pResponse->GetString("submitter", "Unknown");
-                const int tier = pResponse->GetInt("difficulty", -1);
-                const int bonus = pResponse->GetInt("bonus", -1);
-                char layout[BUFSIZELOCL];
-                if (pResponse->GetBool("linear", false))
+                KeyValues *pMapInfo = pResponse->FindKey("mapinfo");
+                if (pMapInfo)
                 {
-                    LOCALIZE_TOKEN(linear, "MOM_Linear", layout);
-                }
-                else
-                {
-                    Q_snprintf(layout, BUFSIZELOCL, "%i STAGES", pResponse->GetInt("zones", -1));
-                }
+                    char layout[BUFSIZELOCL];
+                    if (pMapInfo->GetBool("linear", false))
+                    {
+                        LOCALIZE_TOKEN(linear, "MOM_Linear", layout);
+                    }
+                    else
+                    {
+                        Q_snprintf(layout, BUFSIZELOCL, "%i STAGES", pMapInfo->GetInt("zones", -1));
+                    }
 
-                UpdateMapInfoLabel(author, tier, layout, bonus);
-                m_bMapInfoLoaded = true; // Stop this info from being fetched again
+                    UpdateMapInfoLabel(pMapInfo->GetString("mapper_nick", "Unknown"), pMapInfo->GetInt("difficulty", -1), layout, pMapInfo->GetInt("bonus", -1));
+                    m_bMapInfoLoaded = true; // Stop this info from being fetched again
+                }
             }
         }
     }
@@ -1452,6 +1450,42 @@ void CClientTimesDisplay::OnlineTimesVectorToLeaderboards(LEADERBOARDS pLeaderbo
         if (m_pLoadingOnlineTimes)
         {
             m_pLoadingOnlineTimes->SetVisible(false);
+        }
+    }
+}
+
+void CClientTimesDisplay::ToggleFlag(RUN_FLAG flag)
+{
+    flaggedRuns = static_cast<RUN_FLAG>(flaggedRuns ^ flag);
+#ifdef _DEBUG
+    DevMsg("RUNFLAG_SCROLL %s SET\nRUNFLAG_W_ONLY %s SET\nRUNFLAG_HSW %s SET\nRUNFLAG_SW %s SET\nRUNFLAG_BW %s SET\nRUNFLAG_BONUS %s SET\n",
+        isFlagSet(RUNFLAG_SCROLL) ? "IS" : "IS NOT",
+        isFlagSet(RUNFLAG_W_ONLY) ? "IS" : "IS NOT",
+        isFlagSet(RUNFLAG_HSW) ? "IS" : "IS NOT",
+        isFlagSet(RUNFLAG_SW) ? "IS" : "IS NOT",
+        isFlagSet(RUNFLAG_BW) ? "IS" : "IS NOT",
+        isFlagSet(RUNFLAG_BONUS) ? "IS" : "IS NOT");
+#endif
+}
+
+bool CClientTimesDisplay::isFlagSet(RUN_FLAG flag) const
+{
+    return (flaggedRuns & flag) == flag;
+}
+
+void CClientTimesDisplay::ResetFlagButton(const char* name)
+{
+    for (int i = 0; i < m_pFilterPanel->GetChildCount(); i++)
+    {
+        ToggleButton *pChild = dynamic_cast<ToggleButton*>(m_pFilterPanel->GetChild(i));
+        if (pChild && Q_strcmp(pChild->GetName(), name))
+        {
+#ifdef _DEBUG
+            DevMsg("Reverting %s\n", name);
+#endif
+            pChild->ForceDepressed(false);
+            pChild->SetSelected(false);
+            break;
         }
     }
 }
@@ -1750,29 +1784,64 @@ void CClientTimesDisplay::OnCommand(const char *pCommand)
             }
         }
     }
+    // MOM_TODO: This is easy to fuck up (UI might get desynced with the toggles)
     else if (isFlagScrollOnly)
     {
-        flaggedRuns = static_cast<RUN_FLAG>(flaggedRuns ^ RUNFLAG_SCROLL);
+        // Scroll can always be added as a flag (Every other flag accepts it)
+        ToggleFlag(RUNFLAG_SCROLL);
     }
     else if (isFlagWOnly)
     {
-        flaggedRuns = static_cast<RUN_FLAG>(flaggedRuns ^ RUNFLAG_W_ONLY);
+        // W_ONLY is only allowed if no other movement flag is set, but can be removed at any time
+        if (isFlagSet(RUNFLAG_W_ONLY) || (!isFlagSet(RUNFLAG_HSW) && !isFlagSet(RUNFLAG_SW) && !isFlagSet(RUNFLAG_BW)))
+        {
+            ToggleFlag(RUNFLAG_W_ONLY);
+        }
+        else  // We have to make sure to revert this last click
+        {
+            ResetFlagButton("WOnly");
+        }
     }
     else if (isFlagHSW)
     {
-        flaggedRuns = static_cast<RUN_FLAG>(flaggedRuns ^ RUNFLAG_HSW);
+        // HSW is only allowed if no other movement flag is set, but can be removed at any time
+        if (isFlagSet(RUNFLAG_HSW) || (!isFlagSet(RUNFLAG_W_ONLY) && !isFlagSet(RUNFLAG_SW) && !isFlagSet(RUNFLAG_BW)))
+        {
+            ToggleFlag(RUNFLAG_HSW);
+        }
+        else  // We have to make sure to revert this last click
+        {
+            ResetFlagButton("HalfSideways");
+        }
     }
     else if (isFlagSideways)
     {
-        flaggedRuns = static_cast<RUN_FLAG>(flaggedRuns ^ RUNFLAG_SW);
+        // SW is only allowed if no other movement flag is set, but can be removed at any time
+        if (isFlagSet(RUNFLAG_SW) || (!isFlagSet(RUNFLAG_W_ONLY) && !isFlagSet(RUNFLAG_HSW) && !isFlagSet(RUNFLAG_BW)))
+        {
+            ToggleFlag(RUNFLAG_SW);
+        }
+        else  // We have to make sure to revert this last click
+        {
+            ResetFlagButton("Sideways");
+        }
     }
     else if (isFlagBackwards)
     {
-        flaggedRuns = static_cast<RUN_FLAG>(flaggedRuns ^ RUNFLAG_BW);
+        // BW is only allowed if no other movement flag is set, but can be removed at any time
+        if (isFlagSet(RUNFLAG_BW) || (!isFlagSet(RUNFLAG_W_ONLY) && !isFlagSet(RUNFLAG_HSW) && !isFlagSet(RUNFLAG_SW)))
+        {
+            ToggleFlag(RUNFLAG_BW);
+        }
+        else  // We have to make sure to revert this last click
+        {
+            ResetFlagButton("Backwards");
+        }
     }
     else if (isFlagBonus)
     {
-        flaggedRuns = static_cast<RUN_FLAG>(flaggedRuns ^ RUNFLAG_BONUS);
+        // Bonus can always be added as a flag (Every other flag accepts it)
+        ToggleFlag(RUNFLAG_BONUS);
     }
     else
     {

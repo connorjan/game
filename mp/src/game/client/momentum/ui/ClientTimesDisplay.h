@@ -322,5 +322,9 @@ class CClientTimesDisplay : public vgui::EditablePanel, public IViewPortPanel, p
     Color m_cFirstPlace, m_cSecondPlace, m_cThirdPlace;
 
     RUN_FLAG flaggedRuns;
+
+    void ToggleFlag(RUN_FLAG flag);
+    bool isFlagSet(RUN_FLAG flag) const;
+    void ResetFlagButton(const char * name);
 };
 #endif // CLIENTSCOREBOARDDIALOG_H
