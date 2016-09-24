@@ -34,11 +34,11 @@
 
 #define SCALE(num) scheme()->GetProportionalScaledValueEx(GetScheme(), (num))
 
-#define DELAY_NEXT_UPDATE 10.0f           // Delay for the next API update, in seconds
-#define MIN_ONLINE_UPDATE_INTERVAL 15.0f  // The amount of seconds minimum between online checks
-#define MAX_ONLINE_UPDATE_INTERVAL 45.0f  // The amount of seconds maximum between online checks
-#define MIN_FRIENDS_UPDATE_INTERVAL 15.0f // The amount of seconds minimum between online checks
-#define MAX_FRIENDS_UPDATE_INTERVAL 45.0f // The amount of seconds maximum between online checks
+#define DELAY_NEXT_UPDATE 30.0f           // Delay for the next API update, in seconds
+#define MIN_ONLINE_UPDATE_INTERVAL 60.0f  // The amount of seconds minimum between online checks
+#define MAX_ONLINE_UPDATE_INTERVAL 90.0f  // The amount of seconds maximum between online checks
+#define MIN_FRIENDS_UPDATE_INTERVAL MIN_ONLINE_UPDATE_INTERVAL // The amount of seconds minimum between online checks
+#define MAX_FRIENDS_UPDATE_INTERVAL MAX_ONLINE_UPDATE_INTERVAL // The amount of seconds maximum between online checks
 //-----------------------------------------------------------------------------
 // Purpose: Game ScoreBoard
 //-----------------------------------------------------------------------------

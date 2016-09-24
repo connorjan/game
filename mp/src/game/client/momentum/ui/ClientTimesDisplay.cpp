@@ -236,6 +236,12 @@ void CClientTimesDisplay::OnThink()
             GetClientVoiceMgr()->StopSquelchMode();
         }
     }
+    // Allow the update if we're halfway through the waiting time
+    if (m_fNextUpdateTime - (DELAY_NEXT_UPDATE / 2) <= gpGlobals->curtime && g_pInputSystem->IsButtonDown(ButtonCode_t::KEY_R))
+    {
+        DevMsg("Updating API...\n");
+        Update();
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -565,7 +571,7 @@ void CClientTimesDisplay::UpdatePlayerInfo(KeyValues *kv, bool fullUpdate)
     char newName[MAX_PLAYER_NAME_LENGTH];
     UTIL_MakeSafeName(oldName, newName, MAX_PLAYER_NAME_LENGTH);
     playerData->SetString("name", newName);
-    // What this if is:
+    // What this is:
     // We want to do a full update if (we ask for it with fullUpdate boolean AND (the minimum time has passed OR it is
     // the first update)) OR the maximum time has passed
     if ((fullUpdate &&
