@@ -25,8 +25,31 @@ class MomentumUtil
 
     void DownloadMap(const char *);
 
-    void CreateAndSendHTTPReq(const char *, CCallResult<MomentumUtil, HTTPRequestCompleted_t> *,
-                              CCallResult<MomentumUtil, HTTPRequestCompleted_t>::func_t);
+    template <class T>
+    void CreateAndSendHTTPReq(const char* szURL, CCallResult<T, HTTPRequestCompleted_t> *callback,
+        typename CCallResult<T, HTTPRequestCompleted_t>::func_t func, T* pCaller)
+    {
+        if (steamapicontext && steamapicontext->SteamHTTP())
+        {
+            HTTPRequestHandle handle = steamapicontext->SteamHTTP()->CreateHTTPRequest(k_EHTTPMethodGET, szURL);
+            SteamAPICall_t apiHandle;
+
+            if (steamapicontext->SteamHTTP()->SendHTTPRequest(handle, &apiHandle))
+            {
+                callback->Set(apiHandle, pCaller, func);
+            }
+            else
+            {
+                Warning("Failed to send HTTP Request to post scores online!\n");
+                steamapicontext->SteamHTTP()->ReleaseHTTPRequest(handle); // GC
+            }
+        }
+        else
+        {
+            Warning("Steampicontext failure.\n");
+            Warning("Could not find Steam Api Context active\n");
+        }
+    }
 
     bool CreateAndSendHTTPReqWithPost(const char *, CCallResult<MomentumUtil, HTTPRequestCompleted_t> *,
                                       CCallResult<MomentumUtil, HTTPRequestCompleted_t>::func_t, KeyValues *params);
@@ -83,6 +106,7 @@ class MomentumUtil
     void KVSaveQAngles(KeyValues *kvInto, const char *pName, const QAngle &toSave);
     void KVLoadQAngles(KeyValues *kvFrom, const char *pName, QAngle &angInto);
 };
+
 
 extern MomentumUtil *g_pMomentumUtil;
 

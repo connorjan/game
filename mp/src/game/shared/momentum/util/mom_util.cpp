@@ -69,31 +69,6 @@ void MomentumUtil::DownloadMap(const char *szMapname)
     // CreateAndSendHTTPReq(zonFileURL, &cbDownloadCallback, &MomentumUtil::DownloadCallback);
 }
 
-void MomentumUtil::CreateAndSendHTTPReq(const char *szURL, CCallResult<MomentumUtil, HTTPRequestCompleted_t> *callback,
-                                        CCallResult<MomentumUtil, HTTPRequestCompleted_t>::func_t func)
-{
-    if (steamapicontext && steamapicontext->SteamHTTP())
-    {
-        HTTPRequestHandle handle = steamapicontext->SteamHTTP()->CreateHTTPRequest(k_EHTTPMethodGET, szURL);
-        SteamAPICall_t apiHandle;
-
-        if (steamapicontext->SteamHTTP()->SendHTTPRequest(handle, &apiHandle))
-        {
-            callback->Set(apiHandle, this, func);
-        }
-        else
-        {
-            Warning("Failed to send HTTP Request to post scores online!\n");
-            steamapicontext->SteamHTTP()->ReleaseHTTPRequest(handle); // GC
-        }
-    }
-    else
-    {
-        Warning("Steampicontext failure.\n");
-        Warning("Could not find Steam Api Context active\n");
-    }
-}
-
 bool MomentumUtil::CreateAndSendHTTPReqWithPost(const char *szURL,
                                                 CCallResult<MomentumUtil, HTTPRequestCompleted_t> *callback,
                                                 CCallResult<MomentumUtil, HTTPRequestCompleted_t>::func_t func,
@@ -134,13 +109,13 @@ bool MomentumUtil::CreateAndSendHTTPReqWithPost(const char *szURL,
 void MomentumUtil::GetRemoteRepoModVersion()
 {
     CreateAndSendHTTPReq("http://raw.githubusercontent.com/momentum-mod/game/master/version.txt", &cbVersionCallback,
-                         &MomentumUtil::VersionCallback);
+                         &MomentumUtil::VersionCallback, this);
 }
 
 void MomentumUtil::GetRemoteChangelog()
 {
     CreateAndSendHTTPReq("http://raw.githubusercontent.com/momentum-mod/game/master/changelog.txt", &cbChangeLog,
-                         &MomentumUtil::ChangelogCallback);
+                         &MomentumUtil::ChangelogCallback, this);
 }
 
 void MomentumUtil::ChangelogCallback(HTTPRequestCompleted_t *pCallback, bool bIOFailure)
