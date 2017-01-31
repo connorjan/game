@@ -60,6 +60,7 @@
         "MOM_Stage" "Stage"
         "MOM_Stage_Start" "Stage %s1 Start"
         "MOM_Linear" "Linear Map"
+		"MOM_Staged" "Staged Map"
         "MOM_Cheater_Message" "If you wish to submit your times,\nyou must turn sv_cheats off\nand restart the map!"
         "MOM_InsideStartZone" "Start Zone"
         "MOM_MapFinished" "Map Finished"
@@ -125,6 +126,7 @@
 		"MOM_MapSelector_StagedOnly" "Staged Maps only"
 		"MOM_MapSelector_MapLayout" "Map Layout"
 		"MOM_MapSelector_MapLayout_Tooltip" "This column shows if the map is linear or has stages."
+		"MOM_AmountZones" "%d Zones"
 
 	//Map Info Dialog
 		"MOM_MapSelector_InfoDialog_Gamemode" "Gamemode: "
