@@ -69,42 +69,6 @@ void MomentumUtil::DownloadMap(const char *szMapname)
     // CreateAndSendHTTPReq(zonFileURL, &cbDownloadCallback, &MomentumUtil::DownloadCallback);
 }
 
-bool MomentumUtil::CreateAndSendHTTPReqWithPost(const char *szURL,
-                                                CCallResult<MomentumUtil, HTTPRequestCompleted_t> *callback,
-                                                CCallResult<MomentumUtil, HTTPRequestCompleted_t>::func_t func,
-                                                KeyValues *params)
-{
-    bool bSuccess = false;
-    if (steamapicontext && steamapicontext->SteamHTTP())
-    {
-        HTTPRequestHandle handle = steamapicontext->SteamHTTP()->CreateHTTPRequest(k_EHTTPMethodPOST, szURL);
-        FOR_EACH_VALUE(params, p_value)
-        {
-            steamapicontext->SteamHTTP()->SetHTTPRequestGetOrPostParameter(handle, p_value->GetName(),
-                                                                           p_value->GetString());
-        }
-
-        SteamAPICall_t apiHandle;
-
-        if (steamapicontext->SteamHTTP()->SendHTTPRequest(handle, &apiHandle))
-        {
-            Warning("Report sent.\n");
-            callback->Set(apiHandle, this, func);
-            bSuccess = true;
-        }
-        else
-        {
-            Warning("Failed to send HTTP Request to report bug online!\n");
-            steamapicontext->SteamHTTP()->ReleaseHTTPRequest(handle); // GC
-        }
-    }
-    else
-    {
-        Warning("Steamapicontext is not online!\n");
-    }
-    return bSuccess;
-}
-
 #ifdef CLIENT_DLL
 void MomentumUtil::GetRemoteRepoModVersion()
 {
