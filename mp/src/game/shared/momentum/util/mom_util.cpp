@@ -389,5 +389,17 @@ void MomentumUtil::KVLoadQAngles(KeyValues *kvFrom, const char *pName, QAngle &a
     LOAD_3D_FROM_KV(kvFrom, pName, angInto);
 }
 
+// Gross hack needed because scheme()->GetImage still returns an image even if it's null (returns the null texture)
+bool MomentumUtil::MapThumbnailExists(const char* pMapName)
+{
+    if (!pMapName) return false;
+    FileFindHandle_t found;
+    char szPath[MAX_PATH];
+    Q_snprintf(szPath, MAX_PATH, "materials/vgui/maps/%s.vmt", pMapName);
+    const char *pStr = g_pFullFileSystem->FindFirstEx(szPath, "GAME", &found);
+    g_pFullFileSystem->FindClose(found);
+    return pStr ? true : false;
+}
+
 static MomentumUtil s_momentum_util;
 MomentumUtil *g_pMomentumUtil = &s_momentum_util;

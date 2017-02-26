@@ -116,6 +116,8 @@ class MomentumUtil
 
     void KVSaveQAngles(KeyValues *kvInto, const char *pName, const QAngle &toSave);
     void KVLoadQAngles(KeyValues *kvFrom, const char *pName, QAngle &angInto);
+
+    bool MapThumbnailExists(const char *pMapName);
 };
 
 
