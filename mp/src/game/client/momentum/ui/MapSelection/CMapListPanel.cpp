@@ -27,3 +27,8 @@ void CMapListPanel::ApplySchemeSettings(IScheme* pScheme)
 
     SetRowHeight(80);
 }
+
+void CMapListPanel::OnSliderMoved()
+{
+    
+}

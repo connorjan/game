@@ -7,6 +7,7 @@
 #include "tier0/memdbgon.h"
 #include "run/mom_replay_manager.h"
 
+
 extern IFileSystem *filesystem;
 
 inline void CleanupRequest(HTTPRequestCompleted_t *pCallback, uint8 *pData)
@@ -68,6 +69,7 @@ void MomentumUtil::DownloadMap(const char *szMapname)
     // CreateAndSendHTTPReq(mapfileURL, &cbDownloadCallback, &MomentumUtil::DownloadCallback);
     // CreateAndSendHTTPReq(zonFileURL, &cbDownloadCallback, &MomentumUtil::DownloadCallback);
 }
+
 
 #ifdef CLIENT_DLL
 void MomentumUtil::GetRemoteRepoModVersion()
