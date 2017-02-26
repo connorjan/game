@@ -284,16 +284,14 @@ bool CImageDownloader::Process(const char* szMapName, const char* szUrl, CMapLis
         if (iterImage->GetID() == newImage->GetID())
         {
             // Image found, return its index (We save it on the target index too just in case we need it later)
-            m_iTargetIndex = i;
-            index = m_iTargetIndex;
+            index = i;
             return true; // Delete me, we already exist
         }
     }
 
     // We're here because the image was not found, lets add it.
-    // We first need to get the vtf into something that the map lists understands    
-    m_iTargetIndex = m_pImageList->AddImage(newImage);
-    index = m_iTargetIndex;
+    // We first need to get the vtf into something that the map lists understands      
+    index = m_pImageList->AddImage(newImage);
     return true; // Delete me, we already exist
 }
 
