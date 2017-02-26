@@ -65,7 +65,7 @@ class MomentumUtil
         return bSuccess;
     }
 
-    CCallResult<MomentumUtil, HTTPRequestCompleted_t> cbDownloadCallback;
+    //CCallResult<MomentumUtil, HTTPRequestCompleted_t> cbDownloadCallback;
 
 #ifdef CLIENT_DLL
     void GetRemoteChangelog();
