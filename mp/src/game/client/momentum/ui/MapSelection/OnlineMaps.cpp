@@ -349,6 +349,7 @@ void CImageDownloader::Callback(HTTPRequestCompleted_t* pCallback, bool bIOFailu
         }
     }
 
-    steamapicontext->SteamHTTP()->ReleaseHTTPRequest(pCallback->m_hRequest);
+    if (pCallback)
+        steamapicontext->SteamHTTP()->ReleaseHTTPRequest(pCallback->m_hRequest);
     delete this;
 }
