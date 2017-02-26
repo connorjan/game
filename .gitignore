@@ -91,6 +91,7 @@ shared.so.dbg
 shared_srv.so
 shared_srv.so.dbg
 mp/game/bin/
+mp/game/momentum/materials/vgui/maps/*
 
 # Others
 *.cache
