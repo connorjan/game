@@ -644,6 +644,12 @@ void CMomentumPlayer::CheckForBhop()
 
 void CMomentumPlayer::UpdateRunStats()
 {
+    float dtAng = EyeAngles().y - m_qangLastAngle.y;
+    if (dtAng > 180.0)
+        dtAng -= 360;
+    else if (dtAng < -180.0)
+        dtAng += 360;
+        
     // ---- Jumps and Strafes ----
     UpdateJumpStrafes();
 
@@ -654,6 +660,12 @@ void CMomentumPlayer::UpdateRunStats()
     //  ---- STRAFE SYNC -----
     UpdateRunSync();
     // ----------
+    
+    // ---- BASH-like stats ----
+    UpdateStrafeOffset(dtAng);
+    
+    m_nPrevButtons = m_nButtons;
+    m_qangLastAngle = EyeAngles();
 
     // this might be used in a later update
     // m_flLastVelocity = velocity;
@@ -695,10 +707,51 @@ void CMomentumPlayer::UpdateRunSync()
             // ticks gaining speed / ticks strafing
             m_SrvData.m_RunData.m_flStrafeSync2 = (float(m_nAccelTicks) / float(m_nStrafeTicks)) * 100.0f;
         }
-
-        m_qangLastAngle = EyeAngles();
         m_flLastSyncVelocity = SyncVelocity;
     }
+}
+
+void CMomentumPlayer::UpdateStrafeOffset(float dtAng)
+{
+    if (!GetGroundEntity())
+    {
+        if (!(m_nButtons & IN_MOVERIGHT && m_nButtons & IN_MOVELEFT))
+        {
+            if (m_nButtons & IN_MOVELEFT) {
+                if ((m_nPrevButtons & IN_MOVERIGHT && m_nPrevButtons & IN_MOVELEFT) || !(m_nPrevButtons & IN_MOVELEFT))
+                {
+                    m_bKeyChanged = true;
+                    m_nKeyTransTick = gpGlobals->tickcount;
+                }
+            }
+            else if (m_nButtons & IN_MOVERIGHT) {
+                if ((m_nPrevButtons & IN_MOVERIGHT && m_nPrevButtons & IN_MOVELEFT) || !(m_nPrevButtons & IN_MOVERIGHT))
+                {
+                    m_bKeyChanged = true;
+                    m_nKeyTransTick = gpGlobals->tickcount;
+                }
+            }
+        }
+        if (dtAng != 0.0 && ((dtAng < 0.0 && m_fPrevDtAng > 0.0) || (dtAng > 0.0 && m_fPrevDtAng < 0.0) || m_fPrevDtAng == 0.0))
+        {
+            m_bDirChanged = true;
+            m_nAngTransTick = gpGlobals->tickcount;
+        }
+        if (m_bKeyChanged && m_bDirChanged)
+        {
+            int t = m_nKeyTransTick - m_nAngTransTick;
+            m_bKeyChanged = false;
+            m_bDirChanged = false;
+            if (t > -26 && t < 26)
+                printf("%d\n", t);
+        }
+    }
+    else
+    {
+        m_bDirChanged = false;
+        m_bKeyChanged = false;
+    }
+    m_fPrevDtAng = dtAng;
 }
 
 void CMomentumPlayer::UpdateJumpStrafes()
@@ -734,7 +787,6 @@ void CMomentumPlayer::UpdateJumpStrafes()
     }
 
     m_bPrevTimerRunning = g_pMomentumTimer->IsRunning();
-    m_nPrevButtons = m_nButtons;
 }
 
 void CMomentumPlayer::UpdateMaxVelocity()

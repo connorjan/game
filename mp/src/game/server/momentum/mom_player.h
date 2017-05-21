@@ -126,6 +126,7 @@ class CMomentumPlayer : public CBasePlayer, public CGameEventListener
     void UpdateRunSync();
     void UpdateJumpStrafes();
     void UpdateMaxVelocity();
+    void UpdateStrafeOffset(float delta);
     // slows down the player in a tween-y fashion
     void TweenSlowdownPlayer();
     void ResetRunStats();
@@ -242,6 +243,12 @@ class CMomentumPlayer : public CBasePlayer, public CGameEventListener
     int m_nPerfectSyncTicks;
     int m_nStrafeTicks;
     int m_nAccelTicks;
+    
+    bool m_bKeyChanged;
+    bool m_bDirChanged;
+    float m_fPrevDtAng;
+    int m_nKeyTransTick;
+    int m_nAngTransTick;
 
     bool m_bPrevTimerRunning;
     int m_nPrevButtons;

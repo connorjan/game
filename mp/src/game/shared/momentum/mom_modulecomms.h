@@ -25,6 +25,7 @@ struct StdDataFromServer
     int m_iLastZoom;
     int m_fSliding;
     int m_iSuccessiveBhops;
+    int m_strafeOffset;
     CMOMRunEntityData m_RunData;
     CMomRunStats::data m_RunStatsData;
 };
