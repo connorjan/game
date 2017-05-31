@@ -74,6 +74,8 @@ class CMomentumReplayGhostEntity : public CBaseAnimating, public CGameEventListe
 
     CReplayFrame *GetCurrentStep() { return m_pPlaybackReplay->GetFrame(m_SrvData.m_iCurrentTick); }
     CReplayFrame *GetNextStep();
+    
+    CReplayFrame *m_LastFrame;
 
     void (*StdDataToReplay)(StdReplayDataFromServer* from);
 
@@ -104,6 +106,12 @@ class CMomentumReplayGhostEntity : public CBaseAnimating, public CGameEventListe
 
     CMomReplayBase *m_pPlaybackReplay;
 
+    bool m_bKeyChanged;
+    bool m_bDirChanged;
+    float m_fPrevDtAng;
+    int m_nKeyTransTick;
+    int m_nAngTransTick;
+
     int m_iBodyGroup;
     Color m_GhostColor;
     static Color m_NewGhostColor;
@@ -112,6 +120,7 @@ class CMomentumReplayGhostEntity : public CBaseAnimating, public CGameEventListe
     QAngle m_angLastEyeAngle;
     float m_flLastSyncVelocity;
     int m_nStrafeTicks, m_nPerfectSyncTicks, m_nAccelTicks, m_nOldReplayButtons, m_iTickElapsed;
+    bool m_bShouldFireOffsetEvent;
 };
 
 #endif // MOM_REPLAY_GHOST_H
