@@ -8,6 +8,7 @@
 #include "util/os_utils.h"
 #ifdef _WIN32
 #include <windows.h>
+#undef CreateEvent
 #endif
 #include "tier0/memdbgon.h"
 
