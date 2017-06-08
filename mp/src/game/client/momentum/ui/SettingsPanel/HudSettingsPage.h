@@ -27,7 +27,7 @@ class HudSettingsPage : public SettingsPage
     void OnCheckboxChecked(Panel *p) OVERRIDE;
 
 private:
-    ComboBox *m_pSpeedometerUnits, *m_pSyncType, *m_pSyncColorize, *m_pSpeedometerColorize;
+    ComboBox *m_pSpeedometerUnits, *m_pSyncType, *m_pSyncColorize, *m_pSpeedometerColorize, *m_pStrafeOffsetDisplay;
 
     CvarToggleCheckButton<ConVarRef> *m_pSpeedometerShow, *m_pSpeedometerShowLastJump, *m_pSpeedometerShowVerticalVel,
         *m_pSyncShow, *m_pSyncShowBar, *m_pButtonsShow, *m_pShowVersion, *m_pTimerShow;
