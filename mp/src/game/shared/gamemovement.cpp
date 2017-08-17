@@ -1200,6 +1200,9 @@ void CGameMovement::FinishTrackPredictionErrors( CBasePlayer *pPlayer )
 void CGameMovement::FinishMove( void )
 {
 	mv->m_nOldButtons = mv->m_nButtons;
+#if GAME_DLL
+    player->m_flSideMove = mv->m_flSideMove;
+#endif
 }
 
 #define PUNCH_DAMPING		9.0f		// bigger number makes the response more damped, smaller is less damped
@@ -2914,7 +2917,7 @@ bool CGameMovement::LadderMove( void )
 		onFloor = false;
 	}
 
-	player->SetGravity( 0 );
+	player->SetGravity( 1.0f ); //Should be always set on 1.0..
 
 	float climbSpeed = ClimbSpeed();
 

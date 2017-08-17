@@ -5,9 +5,9 @@
 
 #include "cbase.h"
 #include "in_buttons.h"
-#include "mom_entity_run_data.h"
+#include "run/mom_entity_run_data.h"
 #include "mom_player.h"
-#include "mom_replay_data.h"
+#include "run/mom_replay_data.h"
 #include "mom_replay_system.h"
 #include <GameEventListener.h>
 
@@ -58,36 +58,32 @@ class CMomentumReplayGhostEntity : public CBaseAnimating, public CGameEventListe
     void UpdateStats(const Vector &ghostVel); // for hud display..
 
     const char *GetGhostModel() const { return m_pszModel; }
-    void SetRunStats(CMomRunStats *stats) { m_RunStats.CopyFrom(*stats); }
+    void SetRunStats(CMomRunStats *stats) { m_SrvData.m_RunStatsData = *stats->m_pData; }
 
-    void AddSpectator(CMomentumPlayer *player)
+    void SetSpectator(CMomentumPlayer *player)
     {
-        if (m_rgSpectators.Find(player) == m_rgSpectators.InvalidIndex())
-            m_rgSpectators.AddToTail(player);
+        m_pPlayerSpectator = player;
     }
 
-    void RemoveSpectator(CMomentumPlayer *player) { m_rgSpectators.FindAndRemove(player); }
+    void RemoveSpectator() { m_pPlayerSpectator = nullptr; }
 
     inline void SetTickRate(float rate) { m_flTickRate = rate; }
-    inline void SetRunFlags(uint32 flags) { m_RunData.m_iRunFlags = flags; }
+    inline void SetRunFlags(uint32 flags) { m_SrvData.m_RunData.m_iRunFlags = flags; }
 
     void SetPlaybackReplay(CMomReplayBase *pPlayback) { m_pPlaybackReplay = pPlayback; }
 
-    CReplayFrame *GetCurrentStep() { return m_pPlaybackReplay->GetFrame(m_iCurrentTick); }
+    CReplayFrame *GetCurrentStep() { return m_pPlaybackReplay->GetFrame(m_SrvData.m_iCurrentTick); }
     CReplayFrame *GetNextStep();
+
+    void (*StdDataToReplay)(StdReplayDataFromServer* from);
 
     bool m_bIsActive;
     bool m_bReplayFirstPerson;
 
-    CNetworkVarEmbedded(CMOMRunEntityData, m_RunData);
-    CNetworkVarEmbedded(CMomRunStats, m_RunStats);
-    CNetworkVar(int, m_nReplayButtons);
-    CNetworkVar(int, m_iTotalStrafes);
-    CNetworkVar(int, m_iTotalJumps);
+    StdReplayDataFromServer m_SrvData;
+    CMomRunStats m_RunStats;
     CNetworkVar(float, m_flTickRate);
     CNetworkVar(int, m_iTotalTimeTicks);
-    CNetworkVar(int, m_iCurrentTick);
-    CNetworkVar(bool, m_bIsPaused);
     CNetworkString(m_pszPlayerName, MAX_PLAYER_NAME_LENGTH);
 
   protected:
@@ -103,7 +99,8 @@ class CMomentumReplayGhostEntity : public CBaseAnimating, public CGameEventListe
     // online mode, where you can play back a ghost and people can watch with you.
     // @Gocnak: I'm not really seeing why though, shouldn't players just download replay files
     // if they want to view them...?
-    CUtlVector<CMomentumPlayer *> m_rgSpectators;
+    //CUtlVector<CMomentumPlayer *> m_rgSpectators;
+    CMomentumPlayer *m_pPlayerSpectator;
 
     CMomReplayBase *m_pPlaybackReplay;
 
@@ -114,7 +111,7 @@ class CMomentumReplayGhostEntity : public CBaseAnimating, public CGameEventListe
     // for faking strafe sync calculations
     QAngle m_angLastEyeAngle;
     float m_flLastSyncVelocity;
-    int m_nStrafeTicks, m_nPerfectSyncTicks, m_nAccelTicks, m_nOldReplayButtons;
+    int m_nStrafeTicks, m_nPerfectSyncTicks, m_nAccelTicks, m_nOldReplayButtons, m_iTickElapsed;
 };
 
 #endif // MOM_REPLAY_GHOST_H

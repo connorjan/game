@@ -23,6 +23,8 @@ class CMomentumPlayer;
 
 #define DUCK_SPEED_MULTIPLIER 0.34f
 
+#define GROUND_FACTOR_MULTIPLIER 301.99337741082998788946739227784f
+
 class CMomentumGameMovement : public CGameMovement
 {
     typedef CGameMovement BaseClass;
@@ -91,6 +93,10 @@ class CMomentumGameMovement : public CGameMovement
     virtual void HandleDuckingSpeedCrop();
     virtual void CheckParameters(void);
     virtual void ReduceTimers(void);
+    virtual void StartGravity(void) OVERRIDE;
+    virtual void FinishGravity(void) OVERRIDE;
+    virtual void StuckGround(void);
+    virtual int ClipVelocity(Vector& in , Vector& normal , Vector& out , float overbounce);
 
   private:
     float m_flReflectNormal; // Used by rampboost fix

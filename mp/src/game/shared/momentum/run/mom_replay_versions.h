@@ -2,14 +2,12 @@
 
 #include "cbase.h"
 #include "mom_replay_base.h"
-#include "mom_replay_entity.h"
 
-class CMomReplayV1 :
-    public CMomReplayBase
+class CMomReplayV1 : public CMomReplayBase
 {
 public:
     CMomReplayV1();
-    CMomReplayV1(CBinaryReader* reader);
+    CMomReplayV1(CBinaryReader* reader, bool bFull);
     virtual ~CMomReplayV1() OVERRIDE;
 
 public:
@@ -21,15 +19,15 @@ public:
     virtual bool SetFrame(int32 index, const CReplayFrame& frame) OVERRIDE;
     virtual CMomRunStats* CreateRunStats(uint8 stages) OVERRIDE;
     virtual void RemoveFrames(int num) OVERRIDE;
-    virtual void Start(bool firstperson) OVERRIDE;
 
 public:
     virtual void Serialize(CBinaryWriter* writer) OVERRIDE;
 
 private:
-    void Deserialize(CBinaryReader* reader);
+    void Deserialize(CBinaryReader* reader, bool bFull = true);
 
 protected:
-    CMomRunStats* m_pRunStats;
+    CMomRunStats *m_pRunStats;
+    CMomRunStats::data m_RunStatsData;
     CUtlVector<CReplayFrame> m_rgFrames;
 };
