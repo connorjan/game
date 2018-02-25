@@ -1,7 +1,8 @@
 #include "cbase.h"
 #include "server_events.h"
-
+#include "mom_shareddefs.h"
 #include "tier0/memdbgon.h"
+
 
 //This is only called when "map ____" is called, if the user uses changelevel then...
 // \/(o_o)\/
@@ -17,16 +18,17 @@ void Momentum::GameInit()
 
     if (!Q_strnicmp(pMapName, "surf_", strlen("surf_")))
     {
+        DevLog("Setting game mode to surf (GM# %d)\n", MOMGM_SURF);
         gm.SetValue(MOMGM_SURF);
     }
     else if (!Q_strnicmp(pMapName, "bhop_", strlen("bhop_")))
     {
-        DevLog("SETTING THE GAMEMODE!\n");
+        DevLog("Setting game mode to bhop (GM# %d)\n", MOMGM_BHOP);
         gm.SetValue(MOMGM_BHOP);
     }
     else if (!Q_strnicmp(pMapName, "kz_", strlen("kz_")))
     {
-        DevLog("SETTING THE GAMEMODE!\n");
+        DevLog("Setting game mode to scroll (GM# %d)\n", MOMGM_SCROLL);
         gm.SetValue(MOMGM_SCROLL);
     }
     else if (!Q_strcmp(pMapName, "background") || !Q_strcmp(pMapName, "credits"))
@@ -35,6 +37,7 @@ void Momentum::GameInit()
     }
     else
     {
+        DevLog("Setting game mode to unknown\n");
         gm.SetValue(MOMGM_UNKNOWN);
     }
 }
@@ -71,7 +74,7 @@ void CMOMServerEvents::LevelInitPostEntity()
 
     //disable point_servercommand
     ConVarRef servercommand("sv_allow_point_servercommand");
-    servercommand.SetValue("0");
+    servercommand.SetValue(0);
 }
 
 void CMOMServerEvents::LevelShutdownPreEntity()
@@ -82,9 +85,6 @@ void CMOMServerEvents::LevelShutdownPreEntity()
         delete zones;
         zones = nullptr;
     }
-
-    ConVarRef gm("mom_gamemode");
-    gm.SetValue(gm.GetDefault());
 }
 
 void CMOMServerEvents::LevelShutdownPostEntity()
@@ -94,7 +94,6 @@ void CMOMServerEvents::LevelShutdownPostEntity()
     if (fullbright.IsValid() && fullbright.GetBool())
         fullbright.SetValue(0);
 }
-
 void CMOMServerEvents::FrameUpdatePreEntityThink()
 {
     g_MapzoneEdit.Update();
@@ -141,6 +140,4 @@ void CMOMServerEvents::MountAdditionalContent()
     }
     pMainFile->deleteThis();
 }
-
-//Create the 
 CMOMServerEvents g_MOMServerEvents("CMOMServerEvents");

@@ -4,30 +4,31 @@
 #pragma once
 #endif
 
+#include <momentum/mom_gamerules.h>
 #include "filters.h"
 #include "func_break.h"
 #include "triggers.h"
-#include <momentum/mom_gamerules.h>
 
 // spawnflags
 enum
 {
     // CTriggerTimerStart
-    SF_LIMIT_LEAVE_SPEED = 0x0001, // Limit speed if player bhopped in start zone?
-    SF_USE_LOOKANGLES = 0x0002,    // Use look angles?
-    // CTriggerOneHop
-    SF_TELEPORT_RESET_ONEHOP = 0x0010, // Reset hop state if player hops onto another different onehop
-    // CTriggerLimitMove
-    LIMIT_JUMP = 0x0020,   // prevent player from jumping
-    LIMIT_CROUCH = 0x0040, // prevent player from croching
-    LIMIT_BHOP = 0x0080,   // prevent player from bhopping
-    // CFuncShootBost and CTriggerMomentumPush
-    SF_PUSH_DIRECTION_AS_FINAL_FORCE =
-        0x0100, // Use the direction vector as final force instead of calculating it by force amount
-    // CTriggerMomentumPush
-    SF_PUSH_ONETOUCH = 0x0200, // Only allow for one touch
-    SF_PUSH_ONSTART = 0x0400,  // Modify player velocity on StartTouch
-    SF_PUSH_ONEND = 0x0800,    // Modify player velocity on EndTouch
+    SF_LIMIT_LEAVE_SPEED = 0x0001,             // Limit speed if player bhopped in start zone?
+    SF_USE_LOOKANGLES = 0x0002,                // Use look angles?
+                                               // CTriggerOneHop
+    SF_TELEPORT_RESET_ONEHOP = 0x0010,         // Reset hop state if player hops onto another different onehop
+                                               // CTriggerLimitMove
+    LIMIT_JUMP = 0x0020,                       // prevent player from jumping
+    LIMIT_CROUCH = 0x0040,                     // prevent player from croching
+    LIMIT_BHOP = 0x0080,                       // prevent player from bhopping
+                                               // CFuncShootBost and CTriggerMomentumPush
+    SF_PUSH_DIRECTION_AS_FINAL_FORCE = 0x0100, // Use the direction vector as final force instead of calculating it by
+                                               // force amount CTriggerMomentumPush
+    SF_PUSH_ONETOUCH = 0x0200,                 // Only allow for one touch
+    SF_PUSH_ONSTART = 0x0400,                  // Modify player velocity on StartTouch
+    SF_PUSH_ONEND = 0x0800,                    // Modify player velocity on EndTouch
+                                               // CTriggerTeleport
+    SF_TELE_ONEXIT = 0x1000,                   // Teleport the player on EndTouch instead of StartTouch
 };
 
 // CBaseMomentumTrigger
@@ -60,6 +61,7 @@ class CTriggerTeleportEnt : public CBaseMomentumTrigger
   public:
     // This void teleports the touching entity!
     void StartTouch(CBaseEntity *) OVERRIDE;
+    void EndTouch(CBaseEntity *) OVERRIDE;
     // Used by children classes to define what ent to teleport to (see CTriggerOneHop)
     void SetDestinationEnt(CBaseEntity *ent) { pDestinationEnt = ent; }
     bool ShouldStopPlayer() const { return m_bResetVelocity; }
@@ -68,6 +70,9 @@ class CTriggerTeleportEnt : public CBaseMomentumTrigger
     void SetShouldResetAngles(const bool newB) { m_bResetAngles = newB; }
 
     virtual void AfterTeleport(){}; // base class does nothing
+
+  protected:
+    void HandleTeleport(CBaseEntity *);
 
   private:
     bool m_bResetVelocity;
@@ -274,12 +279,8 @@ class CTriggerLimitMovement : public CBaseMomentumTrigger
     DECLARE_CLASS(CTriggerLimitMovement, CBaseMomentumTrigger);
 
   public:
-    void Think() OVERRIDE;
     void StartTouch(CBaseEntity *pOther) OVERRIDE;
     void EndTouch(CBaseEntity *pOther) OVERRIDE;
-
-  private:
-    CountdownTimer m_BhopTimer;
 };
 
 // CFuncShootBoost
@@ -306,10 +307,10 @@ class CFuncShootBoost : public CBreakable
 };
 
 // CTriggerMomentumPush
-class CTriggerMomentumPush : public CTriggerTeleportEnt
+class CTriggerMomentumPush : public CBaseMomentumTrigger
 {
   public:
-    DECLARE_CLASS(CTriggerMomentumPush, CTriggerTeleportEnt);
+    DECLARE_CLASS(CTriggerMomentumPush, CBaseMomentumTrigger);
     DECLARE_DATADESC();
 
     CTriggerMomentumPush();
@@ -319,19 +320,8 @@ class CTriggerMomentumPush : public CTriggerTeleportEnt
     void EndTouch(CBaseEntity *) OVERRIDE;
     // Called when (and by) either a StartTouch() or EndTouch() event happens and their requisites are met
     void OnSuccessfulTouch(CBaseEntity *);
-    float GetHoldTeleportTime() const { return m_fMaxHoldSeconds; }
-    void SetHoldTeleportTime(const float pHoldTime) { m_fMaxHoldSeconds = pHoldTime; }
-    void AfterTeleport() OVERRIDE
-    {
-        m_fStartTouchedTime = -1.0f;
-        SetDestinationEnt(nullptr);
-    }
 
   private:
-    // The time that the player initally touched the trigger
-    float m_fStartTouchedTime;
-    // Seconds to hold before activating the teleport
-    float m_fMaxHoldSeconds;
     // Force in units per seconds applied to the player
     float m_fPushForce;
     // 1: SetPlayerVelocity to final push force
@@ -345,4 +335,19 @@ class CTriggerMomentumPush : public CTriggerTeleportEnt
     // Pointer to the destination entity if a teleport is needed
     CBaseEntity *m_Destination;
 };
+
+class CTriggerSlide : public CBaseMomentumTrigger
+{
+    DECLARE_CLASS(CTriggerSlide, CBaseMomentumTrigger);
+    DECLARE_DATADESC();
+
+  public:
+    void StartTouch(CBaseEntity *pOther) OVERRIDE;
+    void EndTouch(CBaseEntity *pOther) OVERRIDE;
+
+  public:
+    bool m_bStuckOnGround, m_bAllowingJump, m_bDisableGravity, m_bFixUpsideSlope;
+    // float m_flSlideGravity;
+};
+
 #endif // TIMERTRIGGERS_H
