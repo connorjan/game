@@ -12,7 +12,7 @@
 #endif
 // Main Version (0 is prealpha, 1 is alpha, 2 is beta and 3 is release)​.Main feature push (increment by one for each)​.​Small commits or hotfixes​
 // If you have any doubts, please refer to http://semver.org/
-#define MOM_CURRENT_VERSION "0.7.1"
+#define MOM_CURRENT_VERSION "0.7.2"
 
 
 // Gamemode for momentum
@@ -112,6 +112,11 @@ typedef enum
 
 #define MAX_STAGES 64
 
+#define CHECK_STEAM_API(steam_interface) \
+    if (!steam_interface) { \
+    Warning("%s->%s(): %d -- Steam API Interface %s could not be loaded! You may be offline or Steam may not be running!\n",  \
+    __FILE__, __FUNCTION__, __LINE__, #steam_interface); return; }
+
 // I'm a deadbeat, so I did this to stop having to worry about what MOM_APIDOMAIN is
 // Set this macro to 0 to use momentum-mod.org as the webdomain, otherwise it uses the local domain (Or whatever you set)
 // Make sure this is 0 when you push!
@@ -129,6 +134,7 @@ typedef enum
 
 #define MAP_FOLDER "maps"
 #define RECORDING_PATH "recordings"
+#define RECORDING_ONLINE_PATH "online"
 #define EXT_ZONE_FILE ".zon"
 #define EXT_RECORDING_FILE ".momrec"
 
